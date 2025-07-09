@@ -1,0 +1,642 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EDA Application{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Welcome to your data analysis workspace{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-primary" onclick="window.location.href='/upload'">
+    <i class="fas fa-plus me-2"></i>New Analysis
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Quick Stats Cards -->
+<div class="card-grid">
+    <div class="card glass-card card-stats">
+        <div class="card-body">
+            <div class="number" id="totalDatasets">0</div>
+            <div class="label">Total Datasets</div>
+            <div class="mt-2">
+                <i class="fas fa-database text-primary" style="font-size: 2rem;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card glass-card card-stats">
+        <div class="card-body">
+            <div class="number" id="totalAnalyses">0</div>
+            <div class="label">Analyses Completed</div>
+            <div class="mt-2">
+                <i class="fas fa-chart-line text-success" style="font-size: 2rem;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card glass-card card-stats">
+        <div class="card-body">
+            <div class="number" id="totalModels">0</div>
+            <div class="label">ML Models Trained</div>
+            <div class="mt-2">
+                <i class="fas fa-robot text-warning" style="font-size: 2rem;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card glass-card card-stats">
+        <div class="card-body">
+            <div class="number" id="totalReports">0</div>
+            <div class="label">Reports Generated</div>
+            <div class="mt-2">
+                <i class="fas fa-file-alt text-info" style="font-size: 2rem;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card glass-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="quick-action-card" onclick="window.location.href='/upload'">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <h6>Upload Dataset</h6>
+                                <p>Start by uploading your CSV, Excel, or JSON file</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="quick-action-card" onclick="window.location.href='/analysis_dashboard'">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <h6>Analyze Data</h6>
+                                <p>Explore your data with statistical analysis</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="quick-action-card" onclick="window.location.href='/feature_engineering'">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <h6>Feature Engineering</h6>
+                                <p>Transform and create new features</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="quick-action-card" onclick="window.location.href='/ml_models'">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <h6>Train Models</h6>
+                                <p>Build and evaluate machine learning models</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="quick-action-card" onclick="window.location.href='/visualization_dashboard'">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <h6>Create Visualizations</h6>
+                                <p>Generate interactive charts and graphs</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="quick-action-card" onclick="window.location.href='/reports'">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <h6>Generate Reports</h6>
+                                <p>Create comprehensive analysis reports</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card glass-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="recentActivity">
+                    <div class="activity-item">
+                        <div class="activity-icon bg-primary">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Welcome to EDA Dashboard</div>
+                            <div class="activity-time">Upload your first dataset to get started</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card glass-card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Tips & Tricks
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="tip-item">
+                    <div class="tip-icon">💡</div>
+                    <div class="tip-text">
+                        Use <kbd>Ctrl+U</kbd> to quickly upload a new dataset
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon">🎯</div>
+                    <div class="tip-text">
+                        Start with data analysis to understand your dataset better
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon">🚀</div>
+                    <div class="tip-text">
+                        Use feature engineering to improve model performance
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Datasets -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card glass-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-database me-2"></i>Recent Datasets
+                </h5>
+                <button class="btn btn-outline-light btn-sm" onclick="refreshDatasets()">
+                    <i class="fas fa-refresh me-1"></i>Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="recentDatasets">
+                    <div class="text-center py-4">
+                        <i class="fas fa-database text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3">No datasets uploaded yet</p>
+                        <button class="btn btn-primary" onclick="window.location.href='/upload'">
+                            <i class="fas fa-plus me-2"></i>Upload Your First Dataset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Chart -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card glass-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Analysis Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="performanceChart" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+    createPerformanceChart();
+});
+
+async function loadDashboardData() {
+    try {
+        // Load statistics
+        const stats = await api.get('/api/dashboard/stats');
+        if (stats.success) {
+            updateStatsCards(stats.data);
+        }
+        
+        // Load recent datasets
+        const datasets = await api.get('/api/datasets/recent');
+        if (datasets.success) {
+            updateRecentDatasets(datasets.data);
+        }
+        
+        // Load recent activity
+        const activity = await api.get('/api/dashboard/activity');
+        if (activity.success) {
+            updateRecentActivity(activity.data);
+        }
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+    }
+}
+
+function updateStatsCards(data) {
+    document.getElementById('totalDatasets').textContent = data.datasets || 0;
+    document.getElementById('totalAnalyses').textContent = data.analyses || 0;
+    document.getElementById('totalModels').textContent = data.models || 0;
+    document.getElementById('totalReports').textContent = data.reports || 0;
+    
+    // Animate counters
+    animateCounters();
+}
+
+function animateCounters() {
+    const counters = document.querySelectorAll('.card-stats .number');
+    counters.forEach(counter => {
+        const target = parseInt(counter.textContent);
+        const increment = target / 30; // Animation duration
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current);
+            }
+        }, 50);
+    });
+}
+
+function updateRecentDatasets(datasets) {
+    const container = document.getElementById('recentDatasets');
+    
+    if (!datasets || datasets.length === 0) {
+        return; // Keep the default empty state
+    }
+    
+    container.innerHTML = datasets.map(dataset => `
+        <div class="dataset-item">
+            <div class="dataset-icon">
+                <i class="fas fa-table"></i>
+            </div>
+            <div class="dataset-info">
+                <div class="dataset-name">${dataset.filename}</div>
+                <div class="dataset-meta">
+                    ${dataset.num_rows} rows × ${dataset.num_columns} columns
+                    <span class="dataset-date">${new Date(dataset.upload_timestamp).toLocaleDateString()}</span>
+                </div>
+            </div>
+            <div class="dataset-actions">
+                <button class="btn btn-sm btn-outline-light" onclick="analyzeDataset(${dataset.id})">
+                    <i class="fas fa-chart-bar"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-light" onclick="viewDataset(${dataset.id})">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateRecentActivity(activities) {
+    const container = document.getElementById('recentActivity');
+    
+    if (!activities || activities.length === 0) {
+        return; // Keep the default welcome message
+    }
+    
+    container.innerHTML = activities.map(activity => `
+        <div class="activity-item">
+            <div class="activity-icon bg-${activity.type === 'upload' ? 'primary' : activity.type === 'analysis' ? 'success' : 'info'}">
+                <i class="fas fa-${activity.icon}"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">${activity.title}</div>
+                <div class="activity-time">${timeAgo(activity.timestamp)}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function createPerformanceChart() {
+    // Sample data for demonstration
+    const data = [{
+        x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        y: [12, 19, 15, 25, 22, 18, 30],
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Analyses',
+        line: { color: '#007bff', width: 3 },
+        marker: { size: 8 }
+    }];
+    
+    const layout = {
+        title: {
+            text: 'Weekly Analysis Activity',
+            font: { color: '#ffffff', size: 16 }
+        },
+        xaxis: {
+            title: 'Day of Week',
+            color: '#ffffff',
+            gridcolor: 'rgba(255,255,255,0.1)'
+        },
+        yaxis: {
+            title: 'Number of Analyses',
+            color: '#ffffff',
+            gridcolor: 'rgba(255,255,255,0.1)'
+        },
+        plot_bgcolor: 'transparent',
+        paper_bgcolor: 'transparent',
+        font: { color: '#ffffff' }
+    };
+    
+    Plotly.newPlot('performanceChart', data, layout, {
+        responsive: true,
+        displayModeBar: false
+    });
+}
+
+function refreshDatasets() {
+    loadDashboardData();
+    showToast('Dashboard refreshed', 'success', 2000);
+}
+
+function analyzeDataset(datasetId) {
+    window.location.href = `/analysis_dashboard?dataset=${datasetId}`;
+}
+
+function viewDataset(datasetId) {
+    // Show dataset preview modal
+    modalManager.create('datasetPreview', 'Dataset Preview', 
+        '<div class="text-center"><div class="spinner"></div><p>Loading dataset...</p></div>',
+        { width: '800px' }
+    );
+    modalManager.show('datasetPreview');
+    
+    // Load dataset data
+    api.get(`/api/datasets/${datasetId}/preview`).then(response => {
+        if (response.success) {
+            const modal = document.getElementById('modal-datasetPreview');
+            modal.querySelector('.modal-body').innerHTML = `
+                <div class="dataset-info mb-3">
+                    <h6>${response.data.filename}</h6>
+                    <p class="text-muted">${response.data.num_rows} rows × ${response.data.num_columns} columns</p>
+                </div>
+                <div class="data-table-container">
+                    <table class="table data-table">
+                        <thead>
+                            <tr>
+                                ${response.data.columns.map(col => `<th>${col}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${response.data.preview.map(row => `
+                                <tr>
+                                    ${response.data.columns.map(col => `<td>${row[col] || ''}</td>`).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    }).catch(error => {
+        const modal = document.getElementById('modal-datasetPreview');
+        modal.querySelector('.modal-body').innerHTML = '<p class="text-danger">Error loading dataset preview</p>';
+    });
+}
+
+function timeAgo(timestamp) {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInSeconds = Math.floor((now - time) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hrs ago`;
+    return `${Math.floor(diffInSeconds / 86400)} days ago`;
+}
+</script>
+
+<style>
+.quick-action-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    height: 100%;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent-blue);
+}
+
+.quick-action-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.quick-action-content h6 {
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.quick-action-content p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    font-size: 1rem;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.tip-item:last-child {
+    margin-bottom: 0;
+}
+
+.tip-icon {
+    font-size: 1.2rem;
+    margin-right: 0.75rem;
+    margin-top: 0.1rem;
+}
+
+.tip-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.dataset-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    margin-bottom: 0.75rem;
+    transition: all var(--transition-fast);
+}
+
+.dataset-item:hover {
+    background: var(--glass-bg);
+    border-color: var(--accent-blue);
+}
+
+.dataset-item:last-child {
+    margin-bottom: 0;
+}
+
+.dataset-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-md);
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.dataset-info {
+    flex: 1;
+}
+
+.dataset-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.dataset-meta {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.dataset-date {
+    margin-left: 1rem;
+    color: var(--text-muted);
+}
+
+.dataset-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .quick-action-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .quick-action-icon {
+        margin-right: 0;
+        margin-bottom: 0.75rem;
+    }
+    
+    .dataset-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .dataset-icon {
+        margin-right: 0;
+        margin-bottom: 0.75rem;
+    }
+    
+    .dataset-actions {
+        margin-top: 0.75rem;
+    }
+}
+</style>
+{% endblock %}

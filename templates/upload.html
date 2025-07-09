@@ -1,0 +1,846 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Dataset - EDA Application{% endblock %}
+
+{% block page_title %}Upload Dataset{% endblock %}
+{% block page_subtitle %}Upload your CSV, Excel, or JSON file to begin analysis{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{{ url_for('index') }}">Dashboard</a>
+</li>
+<li class="breadcrumb-item active">Upload</li>
+{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-outline-light" onclick="showSampleData()">
+    <i class="fas fa-eye me-2"></i>View Sample Data
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Upload Area -->
+        <div class="card glass-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cloud-upload-alt me-2"></i>Upload Your Dataset
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="file-drop-zone" id="fileDropZone">
+                    <div class="file-upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="file-upload-text">
+                        <h4>Drag & Drop your files here</h4>
+                        <p class="text-muted">or click to browse</p>
+                        <p class="text-small">Supported formats: CSV, Excel (.xlsx, .xls), JSON (max 50MB)</p>
+                    </div>
+                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json" multiple hidden>
+                </div>
+                
+                <!-- Upload Progress -->
+                <div id="uploadProgress" class="mt-3" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="upload-filename"></span>
+                        <span class="upload-percentage">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- File List -->
+                <div id="fileList" class="mt-3" style="display: none;">
+                    <h6>Selected Files:</h6>
+                    <div id="selectedFiles"></div>
+                </div>
+                
+                <!-- Upload Button -->
+                <div class="text-center mt-3">
+                    <button id="uploadBtn" class="btn btn-primary btn-lg" onclick="uploadFiles()" disabled>
+                        <i class="fas fa-upload me-2"></i>Upload & Analyze
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- File Preview -->
+        <div id="filePreview" class="card glass-card mt-4" style="display: none;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-eye me-2"></i>File Preview
+                </h5>
+                <div class="card-controls">
+                    <button class="btn btn-sm btn-outline-light" onclick="downloadSample()">
+                        <i class="fas fa-download me-1"></i>Download Sample
+                    </button>
+                    <button class="btn btn-sm btn-outline-light" onclick="clearPreview()">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="previewContent"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Upload Instructions -->
+        <div class="card glass-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Upload Guidelines
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="guideline-item">
+                    <div class="guideline-icon">
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div class="guideline-text">
+                        <strong>Supported Formats</strong>
+                        <p>CSV, Excel (.xlsx, .xls), JSON</p>
+                    </div>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">
+                        <i class="fas fa-weight-hanging text-warning"></i>
+                    </div>
+                    <div class="guideline-text">
+                        <strong>File Size Limit</strong>
+                        <p>Maximum 50MB per file</p>
+                    </div>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">
+                        <i class="fas fa-table text-info"></i>
+                    </div>
+                    <div class="guideline-text">
+                        <strong>Data Structure</strong>
+                        <p>First row should contain column headers</p>
+                    </div>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">
+                        <i class="fas fa-shield-alt text-primary"></i>
+                    </div>
+                    <div class="guideline-text">
+                        <strong>Data Security</strong>
+                        <p>Your data is processed securely and not shared</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Uploads -->
+        <div class="card glass-card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Uploads
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="recentUploads">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-inbox" style="font-size: 2rem;"></i>
+                        <p class="mt-2">No recent uploads</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="card glass-card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Upload Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalUploads">0</div>
+                    <div class="stat-label">Total Uploads</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSize">0 MB</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgProcessingTime">0s</div>
+                    <div class="stat-label">Avg Processing Time</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script>
+let selectedFiles = [];
+let uploadedDatasets = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeUpload();
+    loadRecentUploads();
+    loadUploadStats();
+});
+
+function initializeUpload() {
+    const dropZone = document.getElementById('fileDropZone');
+    const fileInput = document.getElementById('fileInput');
+    
+    // Click to upload
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    // Drag and drop events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+    
+    dropZone.addEventListener('drop', handleDrop, false);
+    fileInput.addEventListener('change', handleFiles, false);
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function highlight(e) {
+        dropZone.classList.add('dragover');
+    }
+    
+    function unhighlight(e) {
+        dropZone.classList.remove('dragover');
+    }
+    
+    function handleDrop(e) {
+        const files = e.dataTransfer.files;
+        handleFiles({ target: { files } });
+    }
+    
+    function handleFiles(e) {
+        const files = [...e.target.files];
+        validateAndAddFiles(files);
+    }
+}
+
+function validateAndAddFiles(files) {
+    const validExtensions = ['.csv', '.xlsx', '.xls', '.json'];
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    
+    const validFiles = files.filter(file => {
+        const extension = '.' + file.name.split('.').pop().toLowerCase();
+        const isValidExtension = validExtensions.includes(extension);
+        const isValidSize = file.size <= maxSize;
+        
+        if (!isValidExtension) {
+            showToast(`${file.name} has an unsupported format`, 'warning');
+            return false;
+        }
+        
+        if (!isValidSize) {
+            showToast(`${file.name} is too large (max 50MB)`, 'warning');
+            return false;
+        }
+        
+        return true;
+    });
+    
+    if (validFiles.length > 0) {
+        selectedFiles = [...selectedFiles, ...validFiles];
+        updateFileList();
+        previewFirstFile();
+        document.getElementById('uploadBtn').disabled = false;
+    }
+}
+
+function updateFileList() {
+    const fileListContainer = document.getElementById('fileList');
+    const selectedFilesContainer = document.getElementById('selectedFiles');
+    
+    if (selectedFiles.length === 0) {
+        fileListContainer.style.display = 'none';
+        return;
+    }
+    
+    fileListContainer.style.display = 'block';
+    selectedFilesContainer.innerHTML = selectedFiles.map((file, index) => `
+        <div class="selected-file-item">
+            <div class="file-info">
+                <div class="file-icon">
+                    <i class="fas fa-${getFileIcon(file.name)}"></i>
+                </div>
+                <div class="file-details">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${formatBytes(file.size)}</div>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" onclick="removeFile(${index})">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    updateFileList();
+    
+    if (selectedFiles.length === 0) {
+        document.getElementById('uploadBtn').disabled = true;
+        clearPreview();
+    } else {
+        previewFirstFile();
+    }
+}
+
+function previewFirstFile() {
+    if (selectedFiles.length === 0) return;
+    
+    const file = selectedFiles[0];
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            let data;
+            const extension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (extension === '.csv') {
+                data = parseCSV(e.target.result);
+            } else if (extension === '.json') {
+                data = JSON.parse(e.target.result);
+                if (!Array.isArray(data)) {
+                    throw new Error('JSON should be an array of objects');
+                }
+            } else {
+                showToast('Preview not available for Excel files', 'info');
+                return;
+            }
+            
+            displayPreview(data, file.name);
+        } catch (error) {
+            showToast(`Error previewing file: ${error.message}`, 'error');
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
+function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().replace(/['"]/g, ''));
+    
+    return lines.slice(1, 6).map(line => {
+        const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''));
+        const obj = {};
+        headers.forEach((header, index) => {
+            obj[header] = values[index] || '';
+        });
+        return obj;
+    });
+}
+
+function displayPreview(data, filename) {
+    const previewContainer = document.getElementById('filePreview');
+    const previewContent = document.getElementById('previewContent');
+    
+    if (!data || data.length === 0) {
+        previewContent.innerHTML = '<p class="text-muted">No data to preview</p>';
+        previewContainer.style.display = 'block';
+        return;
+    }
+    
+    const columns = Object.keys(data[0]);
+    const previewData = data.slice(0, 5);
+    
+    previewContent.innerHTML = `
+        <div class="preview-info mb-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>File:</strong> ${filename}
+                </div>
+                <div class="col-md-6">
+                    <strong>Columns:</strong> ${columns.length}
+                </div>
+            </div>
+        </div>
+        <div class="data-table-container">
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        ${columns.map(col => `<th>${col}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${previewData.map(row => `
+                        <tr>
+                            ${columns.map(col => `<td title="${row[col] || ''}">${row[col] || ''}</td>`).join('')}
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted mt-2">Showing first 5 rows</p>
+    `;
+    
+    previewContainer.style.display = 'block';
+}
+
+function clearPreview() {
+    document.getElementById('filePreview').style.display = 'none';
+}
+
+async function uploadFiles() {
+    if (selectedFiles.length === 0) return;
+    
+    const uploadBtn = document.getElementById('uploadBtn');
+    const progressContainer = document.getElementById('uploadProgress');
+    
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    
+    for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        await uploadSingleFile(file, i + 1);
+    }
+    
+    // Reset UI
+    selectedFiles = [];
+    updateFileList();
+    clearPreview();
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload & Analyze';
+    progressContainer.style.display = 'none';
+    
+    // Refresh recent uploads
+    loadRecentUploads();
+    loadUploadStats();
+    
+    showToast('All files uploaded successfully!', 'success');
+    
+    // Redirect to analysis if single file
+    if (uploadedDatasets.length === 1) {
+        setTimeout(() => {
+            window.location.href = `/analysis_dashboard?dataset=${uploadedDatasets[0].id}`;
+        }, 2000);
+    }
+}
+
+async function uploadSingleFile(file, fileNumber) {
+    const progressContainer = document.getElementById('uploadProgress');
+    const progressBar = progressContainer.querySelector('.progress-bar');
+    const progressPercentage = progressContainer.querySelector('.upload-percentage');
+    const progressFilename = progressContainer.querySelector('.upload-filename');
+    
+    progressContainer.style.display = 'block';
+    progressFilename.textContent = `(${fileNumber}/${selectedFiles.length}) ${file.name}`;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const xhr = new XMLHttpRequest();
+        
+        return new Promise((resolve, reject) => {
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentage = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percentage + '%';
+                    progressPercentage.textContent = percentage + '%';
+                }
+            });
+            
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        uploadedDatasets.push(response.dataset);
+                        resolve(response);
+                    } else {
+                        reject(new Error(response.error));
+                    }
+                } else {
+                    reject(new Error(`Upload failed with status ${xhr.status}`));
+                }
+            });
+            
+            xhr.addEventListener('error', () => {
+                reject(new Error('Upload failed'));
+            });
+            
+            xhr.open('POST', '/api/data/upload');
+            xhr.send(formData);
+        });
+    } catch (error) {
+        showToast(`Failed to upload ${file.name}: ${error.message}`, 'error');
+        throw error;
+    }
+}
+
+async function loadRecentUploads() {
+    try {
+        const response = await api.get('/api/datasets/recent');
+        if (response.success) {
+            updateRecentUploads(response.data);
+        }
+    } catch (error) {
+        console.error('Error loading recent uploads:', error);
+    }
+}
+
+function updateRecentUploads(uploads) {
+    const container = document.getElementById('recentUploads');
+    
+    if (!uploads || uploads.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-inbox" style="font-size: 2rem;"></i>
+                <p class="mt-2">No recent uploads</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = uploads.slice(0, 5).map(upload => `
+        <div class="recent-upload-item">
+            <div class="upload-icon">
+                <i class="fas fa-${getFileIcon(upload.filename)}"></i>
+            </div>
+            <div class="upload-info">
+                <div class="upload-name">${upload.filename}</div>
+                <div class="upload-meta">
+                    ${upload.num_rows} rows × ${upload.num_columns} cols
+                    <span class="upload-date">${timeAgo(upload.upload_timestamp)}</span>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-outline-light" onclick="analyzeDataset(${upload.id})">
+                <i class="fas fa-chart-bar"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+async function loadUploadStats() {
+    try {
+        const response = await api.get('/api/datasets/stats');
+        if (response.success) {
+            const stats = response.data;
+            document.getElementById('totalUploads').textContent = stats.total_uploads || 0;
+            document.getElementById('totalSize').textContent = formatBytes(stats.total_size || 0);
+            document.getElementById('avgProcessingTime').textContent = (stats.avg_processing_time || 0) + 's';
+        }
+    } catch (error) {
+        console.error('Error loading upload stats:', error);
+    }
+}
+
+function getFileIcon(filename) {
+    const extension = filename.split('.').pop().toLowerCase();
+    switch (extension) {
+        case 'csv': return 'file-csv';
+        case 'xlsx':
+        case 'xls': return 'file-excel';
+        case 'json': return 'file-code';
+        default: return 'file';
+    }
+}
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function timeAgo(timestamp) {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInSeconds = Math.floor((now - time) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+}
+
+function analyzeDataset(datasetId) {
+    window.location.href = `/analysis_dashboard?dataset=${datasetId}`;
+}
+
+function showSampleData() {
+    const sampleData = [
+        { Name: 'John Doe', Age: 28, City: 'New York', Salary: 50000 },
+        { Name: 'Jane Smith', Age: 34, City: 'Los Angeles', Salary: 65000 },
+        { Name: 'Bob Johnson', Age: 45, City: 'Chicago', Salary: 75000 },
+        { Name: 'Alice Brown', Age: 29, City: 'Houston', Salary: 55000 },
+        { Name: 'Charlie Wilson', Age: 38, City: 'Phoenix', Salary: 70000 }
+    ];
+    
+    displayPreview(sampleData, 'sample_data.csv');
+}
+
+function downloadSample() {
+    const sampleCSV = `Name,Age,City,Salary
+John Doe,28,New York,50000
+Jane Smith,34,Los Angeles,65000
+Bob Johnson,45,Chicago,75000
+Alice Brown,29,Houston,55000
+Charlie Wilson,38,Phoenix,70000`;
+    
+    const blob = new Blob([sampleCSV], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_data.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    showToast('Sample file downloaded', 'success', 2000);
+}
+</script>
+
+<style>
+.file-drop-zone {
+    border: 2px dashed var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone.dragover {
+    border-color: var(--accent-blue);
+    transform: scale(1.02);
+    background: rgba(0, 123, 255, 0.05);
+}
+
+.file-upload-icon {
+    font-size: 4rem;
+    color: var(--accent-blue);
+    margin-bottom: 1rem;
+}
+
+.file-upload-text h4 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.file-upload-text p {
+    margin-bottom: 0.25rem;
+}
+
+.text-small {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.selected-file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    margin-bottom: 0.5rem;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.file-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-primary);
+    border-radius: var(--border-radius-md);
+    color: white;
+    margin-right: 1rem;
+}
+
+.file-details {
+    flex: 1;
+}
+
+.file-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.file-size {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.guideline-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.guideline-item:last-child {
+    margin-bottom: 0;
+}
+
+.guideline-icon {
+    margin-right: 1rem;
+    margin-top: 0.2rem;
+}
+
+.guideline-text strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.guideline-text p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.recent-upload-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    margin-bottom: 0.5rem;
+    transition: all var(--transition-fast);
+}
+
+.recent-upload-item:hover {
+    background: var(--glass-bg);
+    border-color: var(--accent-blue);
+}
+
+.recent-upload-item:last-child {
+    margin-bottom: 0;
+}
+
+.upload-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-secondary);
+    border-radius: var(--border-radius-sm);
+    color: white;
+    margin-right: 0.75rem;
+}
+
+.upload-info {
+    flex: 1;
+}
+
+.upload-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.upload-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.upload-date {
+    color: var(--text-muted);
+    margin-left: 0.5rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.preview-info {
+    padding: 1rem;
+    background: var(--glass-bg);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--glass-border);
+}
+
+.card-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .file-drop-zone {
+        padding: 2rem 1rem;
+        min-height: 150px;
+    }
+    
+    .file-upload-icon {
+        font-size: 3rem;
+    }
+    
+    .selected-file-item,
+    .recent-upload-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .file-info {
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-controls {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EDA Dashboard{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark_theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/extra.css') }}">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Plotly.js for charts -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container-fluid d-flex align-items-center">
+            <!-- Brand -->
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-chart-line me-2"></i>
+                EDA Dashboard
+            </a>
+            
+            <!-- Mobile menu toggle -->
+            <button class="navbar-toggler d-md-none" type="button" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- User menu -->
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" onclick="toggleUserMenu()">
+                        <i class="fas fa-user-circle me-1"></i>
+                        User
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" id="userMenu">
+                        <a class="dropdown-item" href="#" onclick="showSettings()">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                        <a class="dropdown-item" href="#" onclick="showHelp()">
+                            <i class="fas fa-question-circle me-2"></i>Help
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="sidebar" id="sidebar">
+                <div class="sidebar-content">
+                    <!-- Navigation Items -->
+                    <div class="sidebar-item {{ 'active' if request.endpoint == 'index' }}">
+                        <a href="{{ url_for('index') }}" class="sidebar-link">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </div>
+                    
+                    <div class="sidebar-item {{ 'active' if request.endpoint == 'upload' }}">
+                        <a href="{{ url_for('upload') }}" class="sidebar-link">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload Data</span>
+                        </a>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">Analysis</div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'analysis_dashboard' }}">
+                            <a href="{{ url_for('analysis_dashboard') }}" class="sidebar-link">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Data Analysis</span>
+                            </a>
+                        </div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'column_analysis' }}">
+                            <a href="{{ url_for('column_analysis') }}" class="sidebar-link">
+                                <i class="fas fa-columns"></i>
+                                <span>Column Analysis</span>
+                            </a>
+                        </div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'statistical_tests' }}">
+                            <a href="{{ url_for('statistical_tests') }}" class="sidebar-link">
+                                <i class="fas fa-calculator"></i>
+                                <span>Statistical Tests</span>
+                            </a>
+                        </div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'insights' }}">
+                            <a href="{{ url_for('insights') }}" class="sidebar-link">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Insights</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">Visualization</div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'visualization_dashboard' }}">
+                            <a href="{{ url_for('visualization_dashboard') }}" class="sidebar-link">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>Visualizations</span>
+                            </a>
+                        </div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'comparison' }}">
+                            <a href="{{ url_for('comparison') }}" class="sidebar-link">
+                                <i class="fas fa-balance-scale"></i>
+                                <span>Comparisons</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">Feature Engineering</div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'feature_engineering' }}">
+                            <a href="{{ url_for('feature_engineering') }}" class="sidebar-link">
+                                <i class="fas fa-cogs"></i>
+                                <span>Basic Features</span>
+                            </a>
+                        </div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'advance_feature_engineering' }}">
+                            <a href="{{ url_for('advance_feature_engineering') }}" class="sidebar-link">
+                                <i class="fas fa-microchip"></i>
+                                <span>Advanced Features</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">Machine Learning</div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'ml_models' }}">
+                            <a href="{{ url_for('ml_models') }}" class="sidebar-link">
+                                <i class="fas fa-robot"></i>
+                                <span>ML Models</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">Reports</div>
+                        
+                        <div class="sidebar-item {{ 'active' if request.endpoint == 'reports' }}">
+                            <a href="{{ url_for('reports') }}" class="sidebar-link">
+                                <i class="fas fa-file-alt"></i>
+                                <span>Generate Reports</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="breadcrumb-nav">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('index') }}">
+                                <i class="fas fa-home"></i>
+                            </a>
+                        </li>
+                        {% block breadcrumb %}{% endblock %}
+                    </ol>
+                </nav>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Page Header -->
+                {% block page_header %}
+                <div class="page-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                            <p class="page-subtitle text-muted">{% block page_subtitle %}{% endblock %}</p>
+                        </div>
+                        <div class="page-actions">
+                            {% block page_actions %}{% endblock %}
+                        </div>
+                    </div>
+                </div>
+                {% endblock %}
+
+                <!-- Page Content -->
+                <div class="page-content">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="btn btn-primary btn-floating" onclick="scrollToTop()" id="scrollToTop" style="display: none;">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">
+                        &copy; 2024 EDA Dashboard. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="text-muted mb-0">
+                        Powered by Flask & Machine Learning
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Files -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Navigation functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const userMenu = document.getElementById('userMenu');
+            if (!e.target.closest('.dropdown')) {
+                userMenu.classList.remove('show');
+            }
+        });
+
+        // Scroll to top functionality
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Show/hide scroll to top button
+        window.addEventListener('scroll', function() {
+            const scrollButton = document.getElementById('scrollToTop');
+            if (window.pageYOffset > 300) {
+                scrollButton.style.display = 'flex';
+            } else {
+                scrollButton.style.display = 'none';
+            }
+        });
+
+        // Settings modal
+        function showSettings() {
+            const content = `
+                <div class="form-group">
+                    <label class="form-label">Theme</label>
+                    <select class="form-control">
+                        <option value="dark" selected>Dark Theme</option>
+                        <option value="light">Light Theme</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Default Chart Type</label>
+                    <select class="form-control">
+                        <option value="plotly">Plotly</option>
+                        <option value="matplotlib">Matplotlib</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="autoSave" checked>
+                        <label class="form-check-label" for="autoSave">
+                            Auto-save analysis results
+                        </label>
+                    </div>
+                </div>
+            `;
+            
+            const footer = `
+                <button type="button" class="btn btn-secondary" onclick="modalManager.hide('settings')">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            `;
+            
+            modalManager.create('settings', 'Settings', content, { footer, width: '500px' });
+            modalManager.show('settings');
+        }
+
+        function saveSettings() {
+            showToast('Settings saved successfully', 'success');
+            modalManager.hide('settings');
+        }
+
+        // Help modal
+        function showHelp() {
+            const content = `
+                <div class="help-section">
+                    <h6><i class="fas fa-upload me-2"></i>Getting Started</h6>
+                    <p>Upload your CSV file to begin analysis. Supported formats: CSV, Excel, JSON.</p>
+                </div>
+                <div class="help-section">
+                    <h6><i class="fas fa-chart-bar me-2"></i>Data Analysis</h6>
+                    <p>Explore your data with statistical summaries, distributions, and correlations.</p>
+                </div>
+                <div class="help-section">
+                    <h6><i class="fas fa-cogs me-2"></i>Feature Engineering</h6>
+                    <p>Transform your data with scaling, encoding, and feature creation tools.</p>
+                </div>
+                <div class="help-section">
+                    <h6><i class="fas fa-robot me-2"></i>Machine Learning</h6>
+                    <p>Train and evaluate models with automatic hyperparameter tuning.</p>
+                </div>
+                <div class="help-section">
+                    <h6><i class="fas fa-keyboard me-2"></i>Keyboard Shortcuts</h6>
+                    <ul class="list-unstyled">
+                        <li><kbd>Ctrl</kbd> + <kbd>U</kbd> - Upload file</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>S</kbd> - Save analysis</li>
+                        <li><kbd>Esc</kbd> - Close modal</li>
+                    </ul>
+                </div>
+            `;
+            
+            modalManager.create('help', 'Help & Documentation', content, { width: '600px' });
+            modalManager.show('help');
+        }
+
+        function logout() {
+            modalManager.confirm(
+                'Confirm Logout',
+                'Are you sure you want to logout? Any unsaved work will be lost.',
+                function() {
+                    window.location.href = '/logout';
+                }
+            );
+        }
+
+                 // Keyboard shortcuts
+         document.addEventListener('keydown', function(e) {
+             if (e.ctrlKey) {
+                 switch(e.key) {
+                     case 'u':
+                         e.preventDefault();
+                         window.location.href = '/upload';
+                         break;
+                     case 's':
+                         e.preventDefault();
+                         showToast('Auto-save enabled', 'info');
+                         break;
+                 }
+             }
+         });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add active class to current page
+            const currentPath = window.location.pathname;
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            
+            sidebarLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.closest('.sidebar-item').classList.add('active');
+                }
+            });
+            
+            // Initialize any page-specific functionality
+            {% block init_js %}{% endblock %}
+        });
+    </script>
+
+    <style>
+        /* Additional styles for base template */
+        .breadcrumb-nav {
+            margin-bottom: 1rem;
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .breadcrumb-item a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+        
+        .breadcrumb-item a:hover {
+            color: var(--text-primary);
+        }
+        
+        .breadcrumb-item.active {
+            color: var(--text-muted);
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .page-subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+        
+        .page-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .sidebar-section {
+            margin: 1rem 0;
+        }
+        
+        .sidebar-section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            border-radius: var(--border-radius-sm);
+            margin: 0 0.5rem;
+        }
+        
+        .sidebar-link:hover {
+            color: var(--text-primary);
+            background: var(--glass-bg);
+        }
+        
+        .sidebar-item.active .sidebar-link {
+            color: var(--text-primary);
+            background: var(--gradient-primary);
+            box-shadow: var(--shadow-glow);
+        }
+        
+        .footer {
+            margin-top: 3rem;
+            padding: 2rem 0;
+            border-top: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+        }
+        
+        .flash-messages {
+            margin-bottom: 1rem;
+        }
+        
+        .help-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .help-section h6 {
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+        }
+        
+        .help-section p, .help-section li {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        kbd {
+            background: var(--secondary-bg);
+            color: var(--text-primary);
+            padding: 0.2rem 0.4rem;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.8rem;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .dropdown-menu {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius-md);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-lg);
+            padding: 0.5rem 0;
+            min-width: 180px;
+            display: none;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+        }
+        
+        .dropdown-item:hover {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+        }
+        
+        .dropdown-divider {
+            height: 1px;
+            background: var(--glass-border);
+            margin: 0.5rem 0;
+        }
+        
+        .navbar-toggler {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            padding: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform var(--transition-normal);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .page-header .d-flex {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+    </style>
+</body>
+</html>

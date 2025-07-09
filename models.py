@@ -92,6 +92,18 @@ class Insight(db.Model):
     recommendations = db.Column(JSON)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class FeatureEngineering(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'), nullable=False)
+    column_name = db.Column(db.String(500), nullable=False)  # Can be multiple columns
+    transformation_type = db.Column(db.String(100), nullable=False)  # 'scaling', 'encoding', 'binning', etc.
+    parameters = db.Column(JSON)
+    before_stats = db.Column(JSON)
+    after_stats = db.Column(JSON)
+    transformation_info = db.Column(JSON)
+    is_applied = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 class ComparisonResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'), nullable=False)
